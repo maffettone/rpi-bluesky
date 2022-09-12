@@ -1,19 +1,35 @@
 import threading
+import atexit
+import logging
 
 from ophyd import Signal
+from ophyd._dispatch import EventDispatcher
 import RPi.GPIO as GPIO
+
+module_logger = logging.getLogger(__name__)
 
 
 class RpiControlLayer:
     """
-    Control Layer that is only really used to pass along the thread class.
-    `get_pv` is required by docstrings, but not actually used.
+    Control Layer that is built piecemeal after _caproto_shim to ensure minimal working example.
+    Maffettone has no idea what he's doing...
     """
+
+    name = "rpi"
 
     def __init__(self):
         """Set up only to use Board pin numbers and not Broadcom SOC"""
-        GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
+        self._dispatcher = EventDispatcher(logger=module_logger, context=None)
+        atexit.register(self._cleanup)
+
+    def _cleanup(self):
+        GPIO.cleanup()
+        if self._dispatcher is None:
+            return
+        if self._dispatcher.is_alive():
+            self._dispatcher.stop()
+        self._dispatcher = None
 
     @staticmethod
     def get_pv(pvname: int):
@@ -22,6 +38,9 @@ class RpiControlLayer:
     @property
     def thread_class(self):
         return threading.Thread
+
+    def get_dispatcher(self):
+        return self._dispatcher
 
 
 rpi_control_layer = RpiControlLayer()
