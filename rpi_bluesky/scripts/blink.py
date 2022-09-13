@@ -35,9 +35,11 @@ def blink(led):
 
 def blink_scan(led):
     """blinks 10 times, but in a single run"""
-    yield from list_scan(
-        [led], led, [0 if i % 2 == 0 else 1 for i in range(20)], per_step=lambda x: bps.sleep(0.5)
-    )
+
+    def sleep_callback(detectors, motor, step):
+        yield from bps.sleep(0.5)
+
+    yield from list_scan([led], led, [0 if i % 2 == 0 else 1 for i in range(20)], per_step=sleep_callback)
 
 
 def main(gpio_pin_num=11):
