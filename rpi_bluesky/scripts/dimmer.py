@@ -23,11 +23,11 @@ RE = RunEngine()
 
 
 def dimmer_scan(led):
-    """Brightens LED then dims the LED continuously with a 1 second break in between"""
+    """Brightens LED then dims the LED over 50 points with a 1 second break in between"""
     yield from bps.mv(led.io, 1)
-    yield from scan([led.io, led.pwm], led.pwm, 0.0, 100.0)
+    yield from scan([led.io, led.pwm], led.pwm, 0.0, 100.0, 50)
     yield from bps.sleep(1.0)
-    yield from scan([led.io, led.pwm], led.pwm, 100.0, 0.0)
+    yield from scan([led.io, led.pwm], led.pwm, 100.0, 0.0, 50)
     yield from bps.mv(led.io, 0)
 
 
