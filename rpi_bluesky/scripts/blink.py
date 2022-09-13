@@ -1,4 +1,6 @@
 """
+Make an LED blink in bluesky using an extensive plan, or a modification of a prepackaged scan.
+
 To run this script, the following is needed.
 1. Breadboard, and jumper wires
 2. 500-1k ohm resistor
@@ -48,6 +50,7 @@ def main(gpio_pin_num=11):
     RE.subscribe(LiveTable([led.name]))
     RE(blink(led))
     RE(blink_scan(led))
+    RE(bps.mv(led, 0))
 
 
 if __name__ == "__main__":
