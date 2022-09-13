@@ -31,3 +31,7 @@ def main(gpio_pin_num=11):
     led = RpiSignal(gpio_pin_num, name=f"led_at_pin{gpio_pin_num}")
     RE.subscribe(LiveTable([led.name]))
     RE(blink(led))
+
+
+if __name__ == "__main__":
+    main()
