@@ -26,10 +26,10 @@ def blink(led):
     """blinks 10 times"""
     for i in range(10):
         yield from bps.mv(led, 1)
-        yield from bps.read(led)
+        yield from bps.one_shot([led])
         yield from bps.sleep(0.5)
         yield from bps.mv(led, 0)
-        yield from bps.read(led)
+        yield from bps.one_shot([led])
         yield from bps.sleep(0.5)
 
 
