@@ -94,6 +94,7 @@ class RpiPWM(Signal):
             raise ValueError(f"Duty cycle must be between 0 and 100%. {value} is an invalid set point.")
         self.pwm.ChangeDutyCycle(value)
         self._current_duty_cycle = value
+        super().put(value, **kwargs)
 
     def get(self, **kwargs):
         return self._current_duty_cycle
