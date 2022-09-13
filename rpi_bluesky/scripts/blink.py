@@ -26,16 +26,18 @@ def blink(led):
     """blinks 10 times"""
     for i in range(10):
         yield from bps.mv(led, 1)
-        yield from bps.one_shot([led])
+        yield from bps.trigger_and_read([led])
         yield from bps.sleep(0.5)
         yield from bps.mv(led, 0)
-        yield from bps.one_shot([led])
+        yield from bps.trigger_and_read([led])
         yield from bps.sleep(0.5)
 
 
 def blink_scan(led):
     """blinks 10 times, but in a single run"""
-    yield from list_scan([led], led, [0 if i % 2 == 0 else 1 for i in range(20)], per_step=bps.sleep(0.5))
+    yield from list_scan(
+        [led], led, [0 if i % 2 == 0 else 1 for i in range(20)], per_step=lambda x: bps.sleep(0.5)
+    )
 
 
 def main(gpio_pin_num=11):
