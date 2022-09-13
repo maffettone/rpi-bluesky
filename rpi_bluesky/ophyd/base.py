@@ -1,6 +1,7 @@
 import atexit
 import logging
 import threading
+import time
 
 import RPi.GPIO as GPIO
 from ophyd import Component, Device, Signal
@@ -74,7 +75,9 @@ class RpiPWM(Signal):
 
     dc_bounds = (0, 100)
 
-    def __init__(self, pin_number=None, *, frequency=100.0, name=None, cl=None, parent=None, **kwargs):
+    def __init__(
+        self, pin_number=None, *, frequency=100.0, name=None, cl=None, parent=None, settle_time=None, **kwargs
+    ):
         if pin_number is None:
             if parent is None:
                 raise AttributeError("Either pin number or parent required for RpiSignal. None given.")
@@ -84,6 +87,7 @@ class RpiPWM(Signal):
         self.pwm = GPIO.PWM(pin_number, frequency)
         self.pwm.start(0)
         self._current_duty_cycle = 0
+        self._settle_time = settle_time or 1.0 / frequency
         name = name or f"PWM_pin_{pin_number}"
         if cl is None:
             cl = rpi_control_layer
@@ -95,6 +99,8 @@ class RpiPWM(Signal):
         self.pwm.ChangeDutyCycle(value)
         self._current_duty_cycle = value
         super().put(value, **kwargs)
+        if self._settle_time:
+            time.sleep(self._settle_time)
 
     def get(self, **kwargs):
         return self._current_duty_cycle
