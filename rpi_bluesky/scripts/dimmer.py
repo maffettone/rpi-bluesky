@@ -1,5 +1,5 @@
 """
-Make an LED dim in bluesky.
+Make an LED dim in bluesky. Noteably, the IO signal fluctuates while the PWM is in use.
 
 To run this script, the following is needed. (Same setup as blink.py)
 1. Breadboard, and jumper wires
