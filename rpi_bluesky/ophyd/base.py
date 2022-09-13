@@ -61,3 +61,28 @@ class RpiSignal(Signal):
 
     def get(self, **kwargs):
         return GPIO.input(self.pin)
+
+
+class RpiPWM(Signal):
+    """Pulsed width modulation that changes only the duty cylce of the PWM at fixed frequency"""
+
+    dc_bounds = (0, 100)
+
+    def __init__(self, pin_number, *, frequency=100.0, name=None, cl=None, **kwargs):
+        self.pin = pin_number
+        self.pwm = GPIO.PWM(pin_number, frequency)
+        self.pwm.start(0)
+        self._current_duty_cycle = 0
+        name = name or f"PWM_pin_{pin_number}"
+        if cl is None:
+            cl = rpi_control_layer
+        super().__init__(name=name, cl=cl, **kwargs)
+
+    def put(self, value, **kwargs):
+        if value < self.dc_bounds[0] or value > self.dc_bounds[1]:
+            raise ValueError(f"Duty cycle must be between 0 and 100%. {value} is an invalid set point.")
+        self.pwm.ChangeDutyCycle(value)
+        self._current_duty_cycle = value
+
+    def get(self, **kwargs):
+        return self._current_duty_cycle
