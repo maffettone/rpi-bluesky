@@ -1,10 +1,10 @@
-import threading
 import atexit
 import logging
+import threading
 
-from ophyd import Signal, Component, Device
-from ophyd._dispatch import EventDispatcher
 import RPi.GPIO as GPIO
+from ophyd import Component, Device, Signal
+from ophyd._dispatch import EventDispatcher
 
 module_logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ rpi_control_layer = RpiControlLayer()
 
 
 class RpiSignal(Signal):
-    def __init__(self, *, pin_number=None, name=None, cl=None, parent=None, **kwargs):
+    def __init__(self, pin_number=None, *, name=None, cl=None, parent=None, **kwargs):
         if pin_number is None:
             if parent is None:
                 raise AttributeError("Either pin number or parent required for RpiSignal. None given.")
@@ -74,7 +74,7 @@ class RpiPWM(Signal):
 
     dc_bounds = (0, 100)
 
-    def __init__(self, pin_number, *, frequency=100.0, name=None, cl=None, parent=None, **kwargs):
+    def __init__(self, pin_number=None, *, frequency=100.0, name=None, cl=None, parent=None, **kwargs):
         if pin_number is None:
             if parent is None:
                 raise AttributeError("Either pin number or parent required for RpiSignal. None given.")
