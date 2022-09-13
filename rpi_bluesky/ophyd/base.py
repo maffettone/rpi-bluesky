@@ -2,7 +2,7 @@ import threading
 import atexit
 import logging
 
-from ophyd import Signal
+from ophyd import Signal, Component, Device
 from ophyd._dispatch import EventDispatcher
 import RPi.GPIO as GPIO
 
@@ -47,13 +47,19 @@ rpi_control_layer = RpiControlLayer()
 
 
 class RpiSignal(Signal):
-    def __init__(self, pin_number, *, name=None, cl=None, **kwargs):
+    def __init__(self, *, pin_number=None, name=None, cl=None, parent=None, **kwargs):
+        if pin_number is None:
+            if parent is None:
+                raise AttributeError("Either pin number or parent required for RpiSignal. None given.")
+            else:
+                pin_number = parent.pin
+
         GPIO.setup(pin_number, GPIO.OUT)
         name = name or f"GPIO_pin_{pin_number}"
         self.pin = pin_number
         if cl is None:
             cl = rpi_control_layer
-        super().__init__(name=name, cl=cl, **kwargs)
+        super().__init__(name=name, cl=cl, parent=parent, **kwargs)
 
     def put(self, value, **kwargs):
         GPIO.output(self.pin, value)
@@ -68,7 +74,12 @@ class RpiPWM(Signal):
 
     dc_bounds = (0, 100)
 
-    def __init__(self, pin_number, *, frequency=100.0, name=None, cl=None, **kwargs):
+    def __init__(self, pin_number, *, frequency=100.0, name=None, cl=None, parent=None, **kwargs):
+        if pin_number is None:
+            if parent is None:
+                raise AttributeError("Either pin number or parent required for RpiSignal. None given.")
+            else:
+                pin_number = parent.pin
         self.pin = pin_number
         self.pwm = GPIO.PWM(pin_number, frequency)
         self.pwm.start(0)
@@ -76,7 +87,7 @@ class RpiPWM(Signal):
         name = name or f"PWM_pin_{pin_number}"
         if cl is None:
             cl = rpi_control_layer
-        super().__init__(name=name, cl=cl, **kwargs)
+        super().__init__(name=name, cl=cl, parent=parent, **kwargs)
 
     def put(self, value, **kwargs):
         if value < self.dc_bounds[0] or value > self.dc_bounds[1]:
@@ -86,3 +97,24 @@ class RpiPWM(Signal):
 
     def get(self, **kwargs):
         return self._current_duty_cycle
+
+
+class RpiComponent(Component):
+    """
+    Simple wraper to component that prevents addition of a suffix by positional argument.
+    It is not expected that the suffix will ever be needed for Raspberry Pis, but left available as kwarg.
+    """
+
+    def __init__(self, cls, **kwargs):
+        super().__init__(cls, **kwargs)
+
+
+class RpiDevice(Device):
+    """
+    Raspbery Pi GPIO Device. Uses pin number instead of a str suffix.
+    Works nicely with RPi Signals and components.
+    """
+
+    def __init__(self, pin: int, *, name: str, **kwargs):
+        self.pin = pin
+        super().__init__(pin, name=name, **kwargs)
