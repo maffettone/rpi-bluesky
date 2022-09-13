@@ -45,3 +45,7 @@ def main(gpio_pin_num=11):
     RE.subscribe(LiveTable([led.io.name, led.pwm.name]))
     RE(dimmer_scan(led))
     RE(dimmer_grid_scan(led))
+
+
+if __name__ == "__main__":
+    main()
