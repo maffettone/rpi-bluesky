@@ -13,18 +13,16 @@ Connect the new jumper wire to pin 11 on the RPi.
 from rpi_bluesky.ophyd import RpiSignal
 from bluesky import RunEngine
 import bluesky.plan_stubs as bps
-import bluesky.preprocessors as bpp
-from bluesky.plans import count
+from bluesky.plans import count, list_scan
 from bluesky.callbacks import LiveTable
 
 
 RE = RunEngine()
 
 
-@bpp.run_decorator(md={})
 def blink(led):
-    """blinks 20 times"""
-    for i in range(20):
+    """blinks 10 times"""
+    for i in range(10):
         yield from bps.mv(led, 1)
         yield from count([led])
         yield from bps.sleep(0.5)
@@ -33,10 +31,16 @@ def blink(led):
         yield from bps.sleep(0.5)
 
 
+def blink_scan(led):
+    """blinks 10 times, but in a single run"""
+    yield from list_scan([led], led, [0 if i % 2 == 0 else 1 for i in range(20)], per_step=bps.sleep(0.5))
+
+
 def main(gpio_pin_num=11):
     led = RpiSignal(gpio_pin_num, name=f"led_at_pin{gpio_pin_num}")
     RE.subscribe(LiveTable([led.name]))
     RE(blink(led))
+    RE(blink_scan(led))
 
 
 if __name__ == "__main__":
