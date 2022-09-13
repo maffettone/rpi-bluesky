@@ -24,7 +24,11 @@ def blink(led):
     """blinks 20 times"""
     for i in range(20):
         yield from bps.mv(led, 1)
-        yield from count(led)
+        yield from count([led])
+        yield from bps.sleep(0.5)
+        yield from bps.mv(led, 1)
+        yield from count([led])
+        yield from bps.sleep(0.5)
 
 
 def main(gpio_pin_num=11):
