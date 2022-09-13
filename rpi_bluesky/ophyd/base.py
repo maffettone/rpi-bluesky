@@ -56,14 +56,8 @@ class RpiSignal(Signal):
         super().__init__(name=name, cl=cl, **kwargs)
 
     def put(self, value, **kwargs):
-        self._validate_put(value)
         GPIO.output(self.pin, value)
         super().put(value, **kwargs)
 
     def get(self, **kwargs):
         return GPIO.input(self.pin)
-
-    @staticmethod
-    def _validate_put(val):
-        if val not in {False, True, 1, 0, 1.0, 0.0, GPIO.LOW, GPIO.HIGH}:
-            raise ValueError(f"{val} is not a valid value for setting a GPIO pin.")
