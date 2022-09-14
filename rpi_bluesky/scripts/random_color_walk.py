@@ -34,15 +34,19 @@ RE = RunEngine()
 def random_walk(led, timeout=15.0):
     """Choose a channel. Change the intensity by +/- 10. Continue randomly."""
     dets = [x.pwm for x in [led.red, led.green, led.blue]]
+
+    for signal in dets:
+        yield from bps.mv(signal, random.random() * 100)
+
     start_time = time.time()
     while time.time() - start_time < timeout:
         channel = random.choice([led.red, led.green, led.blue])
-        previous = channel.pwm.read()
+        previous = yield from bps.rd(channel.pwm)
         next_c = previous + 10 * random.random() * random.choice([-1, 1])
         next_c = min(100, max(0, next_c))
         yield from bps.mv(channel.pwm, next_c)
         yield from bps.trigger_and_read(dets)
-        yield from bps.sleep(0.2)
+        yield from bps.sleep(0.1)
 
 
 def main():
