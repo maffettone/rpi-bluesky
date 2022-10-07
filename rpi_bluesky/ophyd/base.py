@@ -18,9 +18,10 @@ class RpiControlLayer:
 
     name = "rpi"
 
-    def __init__(self):
+    def __init__(self, mode=GPIO.BOARD):
         """Set up only to use Board pin numbers and not Broadcom SOC"""
-        GPIO.setmode(GPIO.BOARD)
+        if mode:
+            GPIO.setmode(mode)
         self._dispatcher = EventDispatcher(logger=module_logger, context=None)
         atexit.register(self._cleanup)
 
