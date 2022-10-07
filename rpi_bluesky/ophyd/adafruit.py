@@ -4,7 +4,7 @@ import board
 from adafruit_as7341 import AS7341
 from ophyd import Device, SignalRO
 
-from rpi_bluesky.ophyd.base import RpiComponent, RpiControlLayer
+from rpi_bluesky.ophyd.base import RpiComponent, rpi_control_layer
 
 
 class AS7341Enum(Enum):
@@ -34,7 +34,7 @@ class AS7341Signal(SignalRO):
         )
         name = name if name is not None else self._channel_attr
         if cl is None:
-            cl = RpiControlLayer(mode=None)
+            cl = rpi_control_layer
         super().__init__(name=name, cl=cl, parent=parent, **kwargs)
 
     def get(self):

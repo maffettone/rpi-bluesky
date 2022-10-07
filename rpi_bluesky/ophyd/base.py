@@ -18,10 +18,8 @@ class RpiControlLayer:
 
     name = "rpi"
 
-    def __init__(self, mode=GPIO.BOARD):
-        """Set up only to use Board pin numbers and not Broadcom SOC"""
-        if mode:
-            GPIO.setmode(mode)
+    def __init__(self):
+        self.mode = None
         self._dispatcher = EventDispatcher(logger=module_logger, context=None)
         atexit.register(self._cleanup)
 
@@ -43,6 +41,12 @@ class RpiControlLayer:
 
     def get_dispatcher(self):
         return self._dispatcher
+
+    def set_mode(self, mode: str):
+        if self.mode:
+            raise RuntimeError("GPIO mode can only be set once at the start of a program.")
+        self.mode = mode.upper()
+        GPIO.setmode(getattr(GPIO, self.mode))
 
 
 rpi_control_layer = RpiControlLayer()
