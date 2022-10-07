@@ -2,3 +2,4 @@
 bluesky
 ophyd
 RPi.GPIO
+adafruit-circuitpython-as7341
