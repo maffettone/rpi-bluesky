@@ -13,7 +13,7 @@ module_logger = logging.getLogger(__name__)
 class RpiControlLayer:
     """
     Control Layer that is built piecemeal after _caproto_shim to ensure minimal working example.
-    Maffettone has no idea what he's doing...
+    This replaces the default in Ophyd and does some Raspberry Pi favors in terms of set up and tear down.
     """
 
     name = "rpi"
@@ -48,6 +48,30 @@ rpi_control_layer = RpiControlLayer()
 
 
 class RpiSignal(Signal):
+    """
+    A signal class to handle pins on the RaspberryPi GPIO board.
+
+    There are 2 sensible ways to extend ophyd.Signal:
+        1. Override the `put` and `get` methods, making use of ophyd's approach to setting, setting and waiting,
+           and reading. That's what we do here.
+        2. In the case where your device doesn't have signals that look like a process variable (PV), you
+           can go ahead and just override `set` and `read` directly, making sure to understand the use of
+           Status (futures) objects in `set`.
+
+    Parameters
+    ----------
+    pin_number: int
+        Pin number for GPIO board
+    name: str
+        Name of the PV. Defaults to GPIO_pin_{pin_number}
+    cl:
+        Control layer modeled after the default RPIControlLayer
+    parent: OphydObject
+        Parent object of the signal
+    kwargs:
+        Keyword arguments passed to `ophyd.Signal.__init__`
+    """
+
     def __init__(self, pin_number=None, *, name=None, cl=None, parent=None, **kwargs):
         if pin_number is None:
             if parent is None:
