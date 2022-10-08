@@ -33,6 +33,7 @@ def dimmer_scan(led):
 
 def main(gpio_pin_num=11):
     led = LED(gpio_pin_num, name=f"led_at_pin_{gpio_pin_num}")
+    led.cl.set_mode("BOARD")  # Required to specify that  we use pin numbers
     RE.subscribe(LiveTable([led.io.name, led.pwm.name]))
     RE(dimmer_scan(led))
     return led

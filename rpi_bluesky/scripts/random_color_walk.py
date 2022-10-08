@@ -51,6 +51,7 @@ def random_walk(led, timeout=15.0):
 
 def main():
     led = RGB_LED(9, name="rgb_led")
+    led.cl.set_mode("BOARD")  # Required to specify that  we use pin numbers
     RE.subscribe(LiveTable([x.pwm.name for x in [led.red, led.green, led.blue]]))
     RE(random_walk(led))
     return led

@@ -12,13 +12,13 @@ Connect the short pin and resistor to another row.
 Connect the other end of the resistor and another jumper wire to a third row.
 Connect the new jumper wire to pin 11 on the RPi.
 """
-from rpi_bluesky.ophyd import RpiSignal
-from bluesky import RunEngine
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
-from bluesky.plans import list_scan
+from bluesky import RunEngine
 from bluesky.callbacks import LiveTable
+from bluesky.plans import list_scan
 
+from rpi_bluesky.ophyd import RpiSignal
 
 RE = RunEngine()
 
@@ -47,6 +47,7 @@ def blink_scan(led):
 
 def main(gpio_pin_num=11):
     led = RpiSignal(gpio_pin_num, name=f"led_at_pin{gpio_pin_num}")
+    led.cl.set_mode("BOARD")  # Required to specify that  we use pin numbers
     RE.subscribe(LiveTable([led.name]))
     RE(blink(led))
     RE(blink_scan(led))
