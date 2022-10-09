@@ -1,6 +1,8 @@
+import time
 from enum import Enum
 
 import board
+import numpy as np
 from adafruit_as7341 import AS7341
 from ophyd import Device, SignalRO
 
@@ -57,5 +59,22 @@ class AS7341Detector(Device):
     yellow = RpiComponent(AS7341Signal, channel="yellow", kind="hinted")
     orange = RpiComponent(AS7341Signal, channel="orange", kind="hinted")
     red = RpiComponent(AS7341Signal, channel="red", kind="hinted")
-    clear = RpiComponent(AS7341Signal, channel="clean", kind="hinted")
+    clear = RpiComponent(AS7341Signal, channel="clear", kind="hinted")
     near_ir = RpiComponent(AS7341Signal, channel="near_ir", kind="hinted")
+
+    def read(self):
+        res = super().read()
+        res[f"{self.name}_array"] = dict(
+            value=np.array([res[f"{self.name}_{x.name.lower()}"]["value"] for x in AS7341Enum]),
+            timestamp=time.time(),
+        )
+        return res
+
+    def describe(self):
+        ret = super().describe()
+        ret[f"{self.name}_array"] = dict(
+            shape=[
+                10,
+            ],
+            dtype="array",
+        )
