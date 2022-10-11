@@ -1,8 +1,11 @@
+import threading
 from enum import Enum
 
 import board
 import numpy as np
 from adafruit_as7341 import AS7341
+from bluesky.callbacks.core import get_obj_fields
+from bluesky.callbacks.mpl_plotting import QtAwareCallback
 from ophyd import Device, SignalRO
 
 from rpi_bluesky.ophyd.base import RpiComponent, rpi_control_layer
@@ -88,3 +91,60 @@ class AS7341Detector(Device):
     # orange = RpiComponent(AS7341Signal, channel="orange", kind="hinted")
     # red = RpiComponent(AS7341Signal, channel="red", kind="hinted")
     """
+
+
+class LiveBars(QtAwareCallback):
+    """An effort to make a live plot for this detector that updates on each read."""
+
+    def __init__(self, key, **kwargs):
+        super().__init__(use_teleporter=kwargs.pop("use_teleporter", None))
+        self.__setup_lock = threading.Lock()
+        self.__setup_event = threading.Event()
+
+        def setup():
+            # Run this code in start() so that it runs on the correct thread.
+            nonlocal key
+            import matplotlib.pyplot as plt
+
+            with self.__setup_lock:
+                if self.__setup_event.is_set():
+                    return
+                self.__setup_event.set()
+            fig, ax = plt.subplots()
+            self.ax = ax
+
+            self.data_key, *others = get_obj_fields([key])
+            self.ax.set_xlabel("Wavelength [nm]")
+            self.ax.set_ylabel("Intensity")
+
+        self.__setup = setup
+
+    def start(self, doc):
+        self.__setup()
+        self.new_data = np.zeros(
+            8,
+        )
+        labels = [f"{x.value}" for x in AS7341Enum][:-2]
+        self.rects = self.ax.bar(range(8), self.new_data, tick_label=labels)
+        super().start(doc)
+
+    def event(self, doc):
+        # This try/except block is needed because multiple event
+        # streams will be emitted by the RunEngine and not all event
+        # streams will have the keys we want.
+        try:
+            self.new_data = doc["data"][self.data_key]
+        except KeyError:
+            # wrong event stream, skip it
+            return
+
+    def update_plot(self):
+        for rect, h in zip(self.rects, self.new_data):
+            rect.set_height(h)
+        # Rescale and redraw.
+        self.ax.relim(visible_only=True)
+        self.ax.autoscale_view(tight=True)
+        self.ax.figure.canvas.draw_idle()
+
+    def stop(self, doc):
+        super().stop(doc)

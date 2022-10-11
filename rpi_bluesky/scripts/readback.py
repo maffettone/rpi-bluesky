@@ -5,7 +5,7 @@ import bluesky.preprocessors as bpp
 from bluesky import RunEngine
 from bluesky.callbacks import LiveTable
 
-from rpi_bluesky.ophyd.adafruit import AS7341Detector
+from rpi_bluesky.ophyd.adafruit import AS7341Detector, LiveBars
 
 RE = RunEngine()
 
@@ -21,8 +21,9 @@ def read_and_pause(dets, pause=0.5, timeout=15.0):
 def main():
     vis_det = AS7341Detector(name="vis_det")
     dets = [vis_det]
+    bars = LiveBars(vis_det.visible.name)
     RE.subscribe(LiveTable([vis_det.near_ir, vis_det.clear]))
-    RE(read_and_pause(dets))
+    RE(read_and_pause(dets), bars)
     return vis_det
 
 
