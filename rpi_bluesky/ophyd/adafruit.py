@@ -54,6 +54,7 @@ class AS7341Array(SignalRO):
         return np.array(getattr(self.parent.sensor, self._channel_attr))
 
     def describe(self):
+        # Because this isn't a simple scalar we need to update the describe dictionary entry
         ret = super().describe()
         ret[f"{self.name}"].update(
             dict(
