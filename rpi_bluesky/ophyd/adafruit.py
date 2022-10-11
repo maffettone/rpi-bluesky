@@ -1,4 +1,3 @@
-import time
 from enum import Enum
 
 import board
@@ -43,38 +42,48 @@ class AS7341Signal(SignalRO):
         return getattr(self.parent.sensor, self._channel_attr)
 
 
+class AS7341Array(SignalRO):
+    def __init__(self, *, parent, name=None, cl=None, **kwargs):
+        self._channel_attr = "all_channels"
+        name = name if name is not None else self._channel_attr
+        if cl is None:
+            cl = rpi_control_layer
+        super().__init__(name=name, cl=cl, parent=parent, **kwargs)
+
+    def get(self):
+        return np.array(getattr(self.parent.sensor, self._channel_attr))
+
+    def describe(self):
+        ret = super().describe()
+        ret[f"{self.name}"].update(
+            dict(
+                dtype="array",
+                shape=[8],
+            )
+        )
+        return ret
+
+
 i2c = board.I2C()
 
 
 class AS7341Detector(Device):
+    """A 10 channel detector that reads in 8 visible channels as an array, and a clear and near_ir channel."""
 
     sensor = AS7341(i2c)
 
-    # I could loop over the Enum, but it would require a meta class, and that seems a bit much for a tutorial...
-    violet = RpiComponent(AS7341Signal, channel="violet", kind="hinted")
-    indigo = RpiComponent(AS7341Signal, channel="indigo", kind="hinted")
-    blue = RpiComponent(AS7341Signal, channel="blue", kind="hinted")
-    cyan = RpiComponent(AS7341Signal, channel="cyan", kind="hinted")
-    green = RpiComponent(AS7341Signal, channel="green", kind="hinted")
-    yellow = RpiComponent(AS7341Signal, channel="yellow", kind="hinted")
-    orange = RpiComponent(AS7341Signal, channel="orange", kind="hinted")
-    red = RpiComponent(AS7341Signal, channel="red", kind="hinted")
+    visible = RpiComponent(AS7341Array, name="visible", kind="hinted")
     clear = RpiComponent(AS7341Signal, channel="clear", kind="hinted")
     near_ir = RpiComponent(AS7341Signal, channel="near_ir", kind="hinted")
-
-    def read(self):
-        res = super().read()
-        res[f"{self.name}_array"] = dict(
-            value=np.array([res[f"{self.name}_{x.name.lower()}"]["value"] for x in AS7341Enum]),
-            timestamp=time.time(),
-        )
-        return res
-
-    def describe(self):
-        ret = super().describe()
-        ret[f"{self.name}_array"] = dict(
-            shape=[
-                10,
-            ],
-            dtype="array",
-        )
+    """
+    Each individual channel could be accessed this way. However, the device driver would use re-trigger the read,
+    and thus the det.violet would not be guaranteed to match det.visible[0].
+    # violet = RpiComponent(AS7341Signal, channel="violet", kind="hinted")
+    # indigo = RpiComponent(AS7341Signal, channel="indigo", kind="hinted")
+    # blue = RpiComponent(AS7341Signal, channel="blue", kind="hinted")
+    # cyan = RpiComponent(AS7341Signal, channel="cyan", kind="hinted")
+    # green = RpiComponent(AS7341Signal, channel="green", kind="hinted")
+    # yellow = RpiComponent(AS7341Signal, channel="yellow", kind="hinted")
+    # orange = RpiComponent(AS7341Signal, channel="orange", kind="hinted")
+    # red = RpiComponent(AS7341Signal, channel="red", kind="hinted")
+    """
