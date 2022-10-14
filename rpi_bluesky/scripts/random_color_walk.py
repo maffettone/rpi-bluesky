@@ -9,12 +9,11 @@ To run this script, the following is needed.
 2. 3 220 ohm resistors (sub optimal current, but sensible)
 3. White LED
 
-Connect the ground of the breadboard to pin 9 on the RPi.
+Connect the ground of the breadboard to pin GROUND (e.g 9)  on the RPi.
 Connect the ground to a row of the breadboard and insert the long cathode pin of the LED in that row.
-Connect the short pin and resistor to another row.
-Connect the other end of the resistor and another jumper wire to a third row.
-Connect the new jumper wire to pin 11 on the RPi.
-
+Connect the pin GPIO17 on the RPi to a resistor, and the other end of the resistor to the red led pin.
+Connect the pin GPIO27 on the RPi to a resistor, and the other end of the resistor to the green led pin.
+Connect the pin GPIO22 on the RPi to a resistor, and the other end of the resistor to the blue led pin.
 """
 
 import random
@@ -50,8 +49,7 @@ def random_walk(led, timeout=15.0):
 
 
 def main():
-    led = RGB_LED(9, name="rgb_led")
-    led.cl.set_mode("BOARD")  # Required to specify that  we use pin numbers
+    led = RGB_LED(name="rgb_led")
     RE.subscribe(LiveTable([x.pwm.name for x in [led.red, led.green, led.blue]]))
     RE(random_walk(led))
     return led

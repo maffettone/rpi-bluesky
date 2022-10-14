@@ -6,11 +6,11 @@ To run this script, the following is needed. (Same setup as blink.py)
 2. 500-1k ohm resistor
 3. LED
 
-Connect the ground of the breadboard to pin 9 on the RPi (or any GND pin).
+Connect the ground of the breadboard to pin GROUND on the RPi.
 Connect the ground to a row of the breadboard and insert the long pin of the LED in that row.
 Connect the short pin and resistor to another row.
 Connect the other end of the resistor and another jumper wire to a third row.
-Connect the new jumper wire to pin 11 on the RPi.
+Connect the new jumper wire to pin GPIO17  on the RPi.
 """
 import bluesky.plan_stubs as bps
 from bluesky import RunEngine
@@ -33,7 +33,6 @@ def dimmer_scan(led):
 
 def main(gpio_pin_num=11):
     led = LED(gpio_pin_num, name=f"led_at_pin_{gpio_pin_num}")
-    led.cl.set_mode("BOARD")  # Required to specify that  we use pin numbers
     RE.subscribe(LiveTable([led.io.name, led.pwm.name]))
     RE(dimmer_scan(led))
     return led

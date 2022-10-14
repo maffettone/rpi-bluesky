@@ -2,6 +2,7 @@ import atexit
 import logging
 import threading
 import time
+from typing import Optional
 
 import RPi.GPIO as GPIO
 from ophyd import Component, Device, Signal
@@ -19,7 +20,8 @@ class RpiControlLayer:
     name = "rpi"
 
     def __init__(self):
-        self.mode = None
+        self.mode = ""
+        self.set_mode("BCM")
         self._dispatcher = EventDispatcher(logger=module_logger, context=None)
         atexit.register(self._cleanup)
 
@@ -151,6 +153,6 @@ class RpiDevice(Device):
     Works nicely with RPi Signals and components.
     """
 
-    def __init__(self, pin: int, *, name: str, **kwargs):
+    def __init__(self, pin: Optional[int] = -1, *, name: str, **kwargs):
         self.pin = pin
         super().__init__(pin, name=name, **kwargs)

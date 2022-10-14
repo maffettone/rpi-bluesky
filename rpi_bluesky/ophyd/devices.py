@@ -9,6 +9,6 @@ class LED(RpiDevice):
 class RGB_LED(RpiDevice):
     """Notice how this device requires hard coding of the channels"""
 
-    red = RpiComponent(LED, pin=11, name="red")
-    green = RpiComponent(LED, pin=13, name="green")
-    blue = RpiComponent(LED, pin=15, name="blue")
+    red = RpiComponent(LED, pin=17, name="red")
+    green = RpiComponent(LED, pin=27, name="green")
+    blue = RpiComponent(LED, pin=22, name="blue")
