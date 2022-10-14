@@ -15,4 +15,5 @@ Notes
 -----
 
 * Required install of libatlas-base-dev via apt on the RPi (to get numpy)
-*
+* Required install of qtbase5-dev via apt on the RPi (for PyQt5)
+* sudo apt-get install python3-pyqt5.qtsvg ( Whatever is necessary to get `%matplotlib qt` to work)

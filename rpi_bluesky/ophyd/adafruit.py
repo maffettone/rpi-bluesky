@@ -112,20 +112,20 @@ class LiveBars(QtAwareCallback):
                 self.__setup_event.set()
             fig, ax = plt.subplots()
             self.ax = ax
+            self.fig = fig
 
             self.data_key, *others = get_obj_fields([key])
             self.ax.set_xlabel("Wavelength [nm]")
             self.ax.set_ylabel("Intensity")
+            self.new_data = np.zeros(8)
+            labels = [f"{x.value}" for x in AS7341Enum][:-2]
+            self.rects = self.ax.bar(range(8), self.new_data, tick_label=labels)
 
         self.__setup = setup
 
     def start(self, doc):
         self.__setup()
-        self.new_data = np.zeros(
-            8,
-        )
-        labels = [f"{x.value}" for x in AS7341Enum][:-2]
-        self.rects = self.ax.bar(range(8), self.new_data, tick_label=labels)
+        self.fig.show()
         super().start(doc)
 
     def event(self, doc):
@@ -137,6 +137,7 @@ class LiveBars(QtAwareCallback):
         except KeyError:
             # wrong event stream, skip it
             return
+        self.update_plot()
 
     def update_plot(self):
         for rect, h in zip(self.rects, self.new_data):
