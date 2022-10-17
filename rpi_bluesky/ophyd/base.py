@@ -2,6 +2,7 @@ import atexit
 import logging
 import threading
 import time
+from typing import Optional
 
 import RPi.GPIO as GPIO
 from ophyd import Component, Device, Signal
@@ -19,8 +20,8 @@ class RpiControlLayer:
     name = "rpi"
 
     def __init__(self):
-        """Set up only to use Board pin numbers and not Broadcom SOC"""
-        GPIO.setmode(GPIO.BOARD)
+        self.mode = ""
+        self.set_mode("BCM")
         self._dispatcher = EventDispatcher(logger=module_logger, context=None)
         atexit.register(self._cleanup)
 
@@ -42,6 +43,12 @@ class RpiControlLayer:
 
     def get_dispatcher(self):
         return self._dispatcher
+
+    def set_mode(self, mode: str):
+        if self.mode:
+            raise RuntimeError("GPIO mode can only be set once at the start of a program.")
+        self.mode = mode.upper()
+        GPIO.setmode(getattr(GPIO, self.mode))
 
 
 rpi_control_layer = RpiControlLayer()
@@ -146,6 +153,6 @@ class RpiDevice(Device):
     Works nicely with RPi Signals and components.
     """
 
-    def __init__(self, pin: int, *, name: str, **kwargs):
+    def __init__(self, pin: Optional[int] = -1, *, name: str, **kwargs):
         self.pin = pin
         super().__init__(pin, name=name, **kwargs)
