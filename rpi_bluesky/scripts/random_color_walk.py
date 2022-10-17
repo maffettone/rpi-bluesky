@@ -24,34 +24,38 @@ import bluesky.preprocessors as bpp
 from bluesky import RunEngine
 from bluesky.callbacks import LiveTable
 
+from rpi_bluesky.ophyd.adafruit import AS7341Detector, LiveBars
 from rpi_bluesky.ophyd.devices import RGB_LED
 
 RE = RunEngine()
 
 
 @bpp.run_decorator()
-def random_walk(led, timeout=15.0):
+def random_walk(led, dets, timeout=30.0):
     """Choose a channel. Change the intensity by +/- 10. Continue randomly."""
-    dets = [x.pwm for x in [led.red, led.green, led.blue]]
+    pwms = [x.pwm for x in [led.red, led.green, led.blue]]  # Pulsed width modulators
+    dets = dets + pwms
 
-    for signal in dets:
+    for signal in pwms:
         yield from bps.mv(signal, random.random() * 100)
 
     start_time = time.time()
     while time.time() - start_time < timeout:
         channel = random.choice([led.red, led.green, led.blue])
         previous = yield from bps.rd(channel.pwm)
-        next_c = previous + 10 * random.random() * random.choice([-1, 1])
+        next_c = previous + 20 * random.random() * random.choice([-1, 1])
         next_c = min(100, max(0, next_c))
         yield from bps.mv(channel.pwm, next_c)
         yield from bps.trigger_and_read(dets)
-        yield from bps.sleep(0.1)
+        # yield from bps.sleep(0.1)
 
 
 def main():
     led = RGB_LED(name="rgb_led")
-    RE.subscribe(LiveTable([x.pwm.name for x in [led.red, led.green, led.blue]]))
-    RE(random_walk(led))
+    det = AS7341Detector(name="det")
+    RE.subscribe(LiveTable([x.pwm.name for x in [led.red, led.green, led.blue]] + [det.near_ir, det.clear]))
+    RE.subscribe(LiveBars(det.visible.name))
+    RE(random_walk(led, [det]))
     return led
 
 
